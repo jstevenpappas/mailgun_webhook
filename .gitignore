@@ -1,0 +1,17 @@
+# ignore the following
+
+.idea/
+
+exports.txt
+example_api_json_response.json
+test.py
+*test*
+test.conf
+
+webhook.log
+*.pyc
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
