@@ -29,7 +29,7 @@ virtualenv ~/mghook
 ```
 export MAILGUN_API_KEY='some-test-value'
 export RDS_LUIGI_DB_NAME=reporting
-export export RDS_LUIGI_USERNAME=event_writer
+export RDS_LUIGI_USERNAME=event_writer
 export RDS_LUIGI_PASSWORD=somepass
 export RDS_LUIGI_HOSTNAME=your-local-postgres-instance.local.com
 export RDS_LUIGI_PORT=5439
