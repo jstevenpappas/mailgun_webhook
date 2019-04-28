@@ -15,7 +15,7 @@
 Minimal setup is required.
 
 
-* install virtualenv 
+* install [virtualenv](https://virtualenv.pypa.io/en/latest/) 
 ```
 virtualenv ~/mghook
 ```
@@ -25,7 +25,7 @@ virtualenv ~/mghook
 ~$ source ~/mghook/bin/activate
 ```
 
-* ensure you have the correct env variables set in your local env
+* ensure you have the correct [environment variables](https://en.wikipedia.org/wiki/Environment_variable#Unix) set in your local env
 ```
 export MAILGUN_API_KEY='some-test-value'
 export RDS_LUIGI_DB_NAME=reporting
@@ -65,7 +65,7 @@ eb ssh mghook-prod
 eb deploy mghook-prod
 ```
 
-* the prod app is accessible behind the following domain
+* the prod app is accessible behind your [chosen domain](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/customdomains.html) (example one below)
 ```
 https://mgeventsink.com/
 ```
@@ -83,14 +83,14 @@ It is run locally by doing the following:
 
 ## Workflow
 
-* the application hosts a webhook that accepts POST requests from MailGun for mailing events (e.g., unsubs, bounces, etc)
+* the application hosts a receiver for [Mailgun webhook](https://documentation.mailgun.com/en/latest/api-webhooks.html) that accepts POST requests from [MailGun for mailing events](https://documentation.mailgun.com/en/latest/api-events.html#events) (e.g., unsubs, bounces, etc)
 * it logs the event - 1 per post - to the Luigi database
-* it responds to GETs only with json text so the aws loadbalancer doesn't mark it down
-* it verifies POST requests by comparing the signature param value with the output of the sha256 hash of the concatenated timestamp and token param values
+* it responds to GETs only with json text so the [AWS ELB loadbalancer](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.elb.html) doesn't mark it down
+* it verifies POST requests by comparing the [signature](https://en.wikipedia.org/wiki/HMAC) param value with the output of the [sha256](https://en.wikipedia.org/wiki/SHA-2) hash of the concatenated timestamp and token param values
 * if the values match - we accept the event as coming from Mailgun... if it doesn't then it is an imposter!
-* also, if signature is good... a response is sent right away back to Mailgun confirming such - the events are written to a Redis cache local to the eb server
+* also, if [signature](https://en.wikipedia.org/wiki/HMAC) is good... a response is sent right away back to Mailgun confirming such - the events are written to a [Redis](https://redis.io/) cache local to the eb server
 immediatly and is processed later asynchronously by 4 separate rq workers running as background daemons on the eb server.
-* the rqworkers are managed - in turn - by a supervisord daemon (see file .ebextensions/01-rqworker.config for how it is setup and configured)
+* the [rqworkers](https://python-rq.org/docs/workers/) are managed - in turn - by a [supervisord](http://supervisord.org/) daemon (see file .[ebextensions](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ebextensions.html)/01-rqworker.config for how it is setup and configured)
 
 
 
@@ -108,12 +108,12 @@ token=BLAHBLAHBLAH
 ```
  
 
-* get the sha256 hash value of those two values concatented using the  to create the hmac (I used the prod value of the API key below for the output)
+* get the [sha256](https://en.wikipedia.org/wiki/SHA-2) hash value of those two values concatented using the  to create the hmac (I used the prod value of the [API](https://help.mailgun.com/hc/en-us/articles/203380100-Where-Can-I-Find-My-API-Key-and-SMTP-Credentials-) key below for the output)
 ```
 echo -n '1506614545BLAHBLAHBLAH' | openssl sha256 -hmac $MAILGUN_API_KEY
 (stdin)= 5fd197818bb9832565dd6f78e74a940ca47a8635fbb6259645e5f4b3cbf0c50c
 ```
-* the value from stdin is going to be the value for the signature param 
+* the value from stdin is going to be the value for the [signature](https://en.wikipedia.org/wiki/HMAC) param 
 ```
 5fd197818bb9832565dd6f78e74a940ca47a8635fbb6259645e5f4b3cbf0c50c
 ```
@@ -124,16 +124,16 @@ curl --data  "event=opened&recipient=john@tzn.com&domain=email.mx.americasbestho
 timestamp=1506614545&token=BLAHBLAHBLAH&signature=5fd197818bb9832565dd6f78e74a940ca47a8635fbb6259645e5f4b3cbf0c50c"
 ```
 
-* assuming you used the same $MAILGUN_API_KEY env var value as the one your app uses then the signatures should match and you should see JSON indicating such
+* assuming you used the same [$MAILGUN_API_KEY](https://help.mailgun.com/hc/en-us/articles/203380100-Where-Can-I-Find-My-API-Key-and-SMTP-Credentials-) env var value as the one your app uses then the [signature](https://en.wikipedia.org/wiki/HMAC) should match and you should see JSON indicating such
 ```
 {'success': True, 'message': 'Payload Accepted'}
 ```
-* if the signatures don't match, you'll see the following:
+* if the [signature](https://en.wikipedia.org/wiki/HMAC) doesn't match, you'll see the following:
 ```
 {'success': False, 'message': 'Malformed Signature'}
 ```
 
-* NOTE: the HTTP response codes are 200 on both so the load balancer doesn't accidentally mark them as being down
+* NOTE: the HTTP response codes are 200 on both so the [load balancer doesn't accidentally mark them as being down](https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/ts-elb-healthcheck.html)
 
 
 
