@@ -46,19 +46,14 @@ git clone https://git.cogolo.net/jpappas/mghook.git
 pip install -r requirements.txt
 ```
 
-* initialize the aws eb repo
+* if necessary, copy or create the requisite [SSH Keys](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) in your [/Users/username/.ssh/ directory](https://superuser.com/questions/635269/cant-find-ssh-directory-in-my-terminal)
+
+* initialize the aws eb repo by running [eb init](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb3-init.html) in the root of the dir you git clone'd in and select the mhook keypair when prompted
 ```
 eb init -p python2.7 mghook-app
 ```
 
-* copy the mghook files from the [SSH Keys](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) folder in box to your /Users/username/.ssh/ directory
-
-* run eb init in the root of the dir you git clone'd in and select the mghook keypair when prompted
-```
-eb init
-```
-
-* to test ssh'ing into the prod server
+* to test [ssh'ing into your environment specific EC2 instance](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/eb3-ssh.html)
 ```
 eb ssh mghook-prod
 ```
@@ -68,7 +63,7 @@ eb ssh mghook-prod
 eb deploy mghook-prod
 ```
 
-* the prod app is accessible behind your [chosen domain](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/customdomains.html) (example one below)
+* the application should be accessible behind your [chosen domain](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/customdomains.html) (example one below)
 ```
 https://mgeventsink.com/
 ```
@@ -87,13 +82,13 @@ It is run locally by doing the following:
 ## Workflow
 
 * the application hosts a receiver for [Mailgun webhook](https://documentation.mailgun.com/en/latest/api-webhooks.html) that accepts POST requests from [MailGun for mailing events](https://documentation.mailgun.com/en/latest/api-events.html#events) (e.g., unsubs, bounces, etc)
-* it logs the event - 1 per post - to the Luigi database
+* it logs the event - 1 per post - to the reporting database
 * it responds to GETs only with json text so the [AWS ELB loadbalancer](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.managing.elb.html) doesn't mark it down
 * it verifies POST requests by comparing the [signature](https://en.wikipedia.org/wiki/HMAC) param value with the output of the [sha256](https://en.wikipedia.org/wiki/SHA-2) hash of the concatenated timestamp and token param values
 * if the values match - we accept the event as coming from Mailgun... if it doesn't then it is an imposter!
 * also, if [signature](https://en.wikipedia.org/wiki/HMAC) is good... a response is sent right away back to Mailgun confirming such - the events are written to a [Redis](https://redis.io/) cache local to the eb server
 immediatly and is processed later asynchronously by 4 separate rq workers running as background daemons on the eb server.
-* the [rqworkers](https://python-rq.org/docs/workers/) are managed - in turn - by a [supervisord](http://supervisord.org/) daemon (see file .[ebextensions](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ebextensions.html)/01-rqworker.config for how it is setup and configured)
+* the [rqworkers](https://python-rq.org/docs/workers/) are managed - in turn - by a [supervisord](http://supervisord.org/) daemon (see file .[ebextensions](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ebextensions.html)/01-[rqworker.config](http://python-rq.org/patterns/supervisor/) for how it is setup and configured via [supervisord](http://supervisord.org/))
 
 
 
