@@ -115,7 +115,7 @@ echo -n '1506614545BLAHBLAHBLAH' | openssl sha256 -hmac $MAILGUN_API_KEY
 ```
 * the value from stdin is going to be the value for the signature param 
 ```
-
+5fd197818bb9832565dd6f78e74a940ca47a8635fbb6259645e5f4b3cbf0c50c
 ```
 
 * use the above param values along with some others that Mailgun uses to construct a curl POST request to your locally running application
