@@ -51,11 +51,14 @@ pip install -r requirements.txt
 eb init -p python2.7 mghook-app
 ```
 
-* copy the mghook files form the SSH Keys folder in box to your /Users/<username>/.ssh/ directory
+* copy the mghook files from the [SSH Keys](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) folder in box to your /Users/username/.ssh/ directory
 
 * run eb init in the root of the dir you git clone'd in and select the mghook keypair when prompted
+```
+eb init
+```
 
-* to ssh to the prod server
+* to test ssh'ing into the prod server
 ```
 eb ssh mghook-prod
 ```
